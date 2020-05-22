@@ -1,0 +1,154 @@
+
+package DAO;
+
+import MODEL.Alugado;
+import MODEL.Cliente;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class AlugadoDAO {
+    
+         private Connection conecta;
+    
+    public AlugadoDAO(){
+        DAO dao = new DAO();
+        this.conecta = dao.conecta();
+    }
+    
+    public void registrar(Alugado alugado){
+        
+        String sql = "INSERT INTO tb_alugado(id_cliente,id_dvd,dt_alugel,dt_devolucao,cpf_cliente,nm_dvd,nm_cliente)"
+                + "VALUES (?,?,?,?,?,?,?)";
+        
+        
+        try{
+            
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            
+            stmt.setInt(1, alugado.getId_cliente());
+            stmt.setInt(2, alugado.getId_dvd());
+            stmt.setString(3, alugado.getDt_alugel());
+            stmt.setString(4, alugado.getDt_devolucao());
+            stmt.setString(5, alugado.getCpf_cliente());
+            stmt.setString(6, alugado.getNm_dvd());
+            stmt.setString(7, alugado.getNm_cliente());
+            
+            
+            stmt.execute();
+            stmt.close();
+            conecta.close();
+            
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+        
+    }
+     public List<Alugado> listarTodos(){
+        
+        String sql = "SELECT* \n FROM tb_alugado \n order by id_a ";
+        ResultSet ResultadoBD;
+        List<Alugado> alugados = new ArrayList<Alugado>();
+        
+        try{
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            ResultadoBD = stmt.executeQuery();
+            while(ResultadoBD.next()){
+                Alugado alugado = new Alugado();
+                alugado.setCpf_cliente(ResultadoBD.getString("cpf_cliente"));
+                alugado.setDt_alugel(ResultadoBD.getString("dt_alugel"));
+                alugado.setDt_devolucao(ResultadoBD.getString("dt_devolucao"));
+                alugado.setId_a(ResultadoBD.getInt("id_a"));
+                alugado.setId_cliente(ResultadoBD.getInt("id_cliente"));
+                alugado.setId_dvd(ResultadoBD.getInt("id_dvd"));
+                alugado.setNm_dvd(ResultadoBD.getString("nm_dvd"));
+                alugado.setNm_cliente(ResultadoBD.getString("nm_cliente"));
+                
+                alugados.add(alugado);
+            }
+            ResultadoBD.close();
+            stmt.close();
+            conecta.close();
+            
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+        
+        return alugados;
+        
+        
+    }
+     
+     public List<Alugado> pesquisarALugados(String texto, int tipo){
+        
+        String where;
+        if(tipo == 1){
+            where = "Where cpf_cliente ilike ? order by id_a";
+        }
+        else if (tipo == 2){
+            where = "Where nm_dvd ilike ? order by id_a";
+        }else{
+            where = "Where nm_cliente ilike ? order by id_a";
+        }
+        
+        String sql = "Select* from tb_alugado " + where;
+        ResultSet ResultadoBD;
+        List<Alugado> alugados = new ArrayList<Alugado>();
+        
+        try{
+            
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            stmt.setString(1, texto+"%");
+            ResultadoBD = stmt.executeQuery();
+            
+            while(ResultadoBD.next()){
+                Alugado alugado = new Alugado();
+                alugado.setCpf_cliente(ResultadoBD.getString("cpf_cliente"));
+                alugado.setDt_alugel(ResultadoBD.getString("dt_alugel"));
+                alugado.setDt_devolucao(ResultadoBD.getString("dt_devolucao"));
+                alugado.setId_a(ResultadoBD.getInt("id_a"));
+                alugado.setId_cliente(ResultadoBD.getInt("id_cliente"));
+                alugado.setId_dvd(ResultadoBD.getInt("id_dvd"));
+                alugado.setNm_dvd(ResultadoBD.getString("nm_dvd"));
+                alugado.setNm_cliente(ResultadoBD.getString("nm_cliente"));
+                
+                alugados.add(alugado);
+        }
+            ResultadoBD.close();
+            stmt.close();
+            conecta.close();
+            
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+        return alugados;
+    }
+     
+            public void Devolver(Alugado alugado){
+         
+         String sql = "Delete \n"
+                 + "from tb_alugado \n"
+                 + "where id_cliente = ? \n"
+                 + "and id_dvd = ?; \n"
+                 + "\n"
+                 + "Update tb_dvds\n"
+                 + "set quantidade = quantidade +1\n"
+                 + "where id_d = ?;";
+         try{
+             PreparedStatement stmt = conecta.prepareStatement(sql);
+             
+             stmt.setInt(1, alugado.getId_cliente());
+             stmt.setInt(2, alugado.getId_dvd());
+             stmt.setInt(3, alugado.getId_dvd());
+             
+             stmt.execute();
+             stmt.close();
+             conecta.close();
+             
+         }catch(SQLException e){
+             throw new RuntimeException(e);
+         }
+     }
+    
+}
