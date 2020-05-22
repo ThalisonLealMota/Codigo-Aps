@@ -1,0 +1,152 @@
+
+package DAO;
+
+import MODEL.Cliente;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class ClienteDAO {
+    
+        private Connection conecta;
+    
+    public ClienteDAO(){
+        DAO dao = new DAO();
+        this.conecta = dao.conecta();
+    }
+    
+    public void registrar(Cliente cliente){
+        
+        String sql = "INSERT INTO tb_cliente(nm_cliente,cpf,cadastrado_por)"
+                + "VALUES (?,?,?)";
+        
+        
+        try{
+            
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            
+            stmt.setString(1, cliente.getNome());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setInt(3, cliente.getCadastrado_por());
+            stmt.execute();
+            stmt.close();
+            conecta.close();
+            
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+        
+    }
+    
+     public List<Cliente> listarTodos(){
+        
+        String sql = "SELECT* \n FROM tb_cliente \n order by nm_cliente";
+        ResultSet ResultadoBD;
+        List<Cliente> clientes = new ArrayList<Cliente>();
+        
+        try{
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            ResultadoBD = stmt.executeQuery();
+            while(ResultadoBD.next()){
+                Cliente cliente = new Cliente();
+                cliente.setId_c(ResultadoBD.getInt("id_c"));
+                cliente.setNome(ResultadoBD.getString("nm_cliente"));
+                cliente.setCpf(ResultadoBD.getString("cpf"));
+                cliente.setCadastrado_por(ResultadoBD.getInt("cadastrado_por"));
+                
+                clientes.add(cliente);
+            }
+            ResultadoBD.close();
+            stmt.close();
+            conecta.close();
+            
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+        
+        return clientes;
+        
+        
+    }
+     
+         public List<Cliente> pesquisarClientes(String texto, int tipo){
+        
+        String where;
+        if(tipo == 1){
+            where = "Where nm_cliente ilike ? order by nm_cliente";
+        }
+        else{
+            where = "Where nm_genero ilike ? order by nome";
+        }
+        
+        String sql = "Select* from tb_cliente " + where;
+        ResultSet ResultadoBD;
+        List<Cliente> clientes = new ArrayList<Cliente>();
+        
+        try{
+            
+            PreparedStatement stmt = conecta.prepareStatement(sql);
+            stmt.setString(1, texto+"%");
+            ResultadoBD = stmt.executeQuery();
+            
+            while(ResultadoBD.next()){
+                Cliente cliente = new Cliente();
+                cliente.setNome(ResultadoBD.getString("nm_cliente"));
+                cliente.setId_c(ResultadoBD.getInt("id_c"));
+                cliente.setCadastrado_por(ResultadoBD.getInt("cadastrado_por"));
+                cliente.setCpf(ResultadoBD.getString("cpf"));
+
+                
+                clientes.add(cliente);
+        }
+            ResultadoBD.close();
+            stmt.close();
+            conecta.close();
+            
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+        return clientes;
+    }
+         
+         public void excluirCliente(Cliente cliente){
+             String sql = "Delete from tb_alugado where id_cliente = ?;"
+                     + "DELETE from tb_cliente where id_c = ?";
+             
+             try{
+                 PreparedStatement stmt = conecta.prepareStatement(sql);
+                 
+                 stmt.setInt(1, cliente.getId_c());
+                 stmt.setInt(2, cliente.getId_c());
+                 
+                 stmt.execute();
+                 stmt.close();
+                 conecta.close();        
+                 
+             }catch(SQLException e){
+                 throw new RuntimeException(e);
+             }
+         }
+         
+         public void editarCliente(Cliente cliente){
+             
+             String sql = "UPDATE tb_cliente "
+                     + "set  nm_cliente = ?"
+                     + "where id_c = ?";
+             
+             try{
+                 PreparedStatement stmt = conecta.prepareStatement(sql);
+                 
+                 stmt.setString(1, cliente.getNome());
+                 stmt.setInt(2, cliente.getId_c());
+                 
+                 stmt.execute();
+                 stmt.close();
+                 conecta.close();
+             }catch(SQLException e){
+                 
+                 throw new RuntimeException(e);
+             }
+         }
+}
